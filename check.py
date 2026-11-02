@@ -57,6 +57,7 @@ def dump(resp) -> None:
     """페이지가 실제로 어떻게 내려오는지 로그에 출력 (디버그용)."""
     soup = BeautifulSoup(resp.text, "html.parser")
     print(f"[DEBUG] status={resp.status_code} url={resp.url}")
+    print("[DEBUG] RAW:", resp.text)
     print(f"[DEBUG] 길이={len(resp.text)} title={soup.title.get_text(strip=True) if soup.title else None}")
     print(f"[DEBUG] script 태그 {len(soup.find_all('script'))}개, iframe {len(soup.find_all('iframe'))}개")
     words = ("접수", "신청", "마감", "예약", "로그인", "접근", "차단", "오류")
