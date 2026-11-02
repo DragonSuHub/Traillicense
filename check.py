@@ -53,6 +53,23 @@ def is_open(html: str) -> bool:
     return False
 
 
+def dump(resp) -> None:
+    """페이지가 실제로 어떻게 내려오는지 로그에 출력 (디버그용)."""
+    soup = BeautifulSoup(resp.text, "html.parser")
+    print(f"[DEBUG] status={resp.status_code} url={resp.url}")
+    print(f"[DEBUG] 길이={len(resp.text)} title={soup.title.get_text(strip=True) if soup.title else None}")
+    print(f"[DEBUG] script 태그 {len(soup.find_all('script'))}개, iframe {len(soup.find_all('iframe'))}개")
+    words = ("접수", "신청", "마감", "예약", "로그인", "접근", "차단", "오류")
+    seen = set()
+    for line in soup.get_text("\n", strip=True).splitlines():
+        if any(w in line for w in words) and line not in seen:
+            seen.add(line)
+            print("[DEBUG] 텍스트:", line[:120])
+            if len(seen) >= 40:
+                break
+    print("[DEBUG] 본문 앞부분:", soup.get_text(" ", strip=True)[:300])
+
+
 def main() -> None:
     try:
         resp = requests.get(URL, headers=HEADERS, timeout=20)
@@ -63,6 +80,8 @@ def main() -> None:
         sys.exit(0)
 
     resp.encoding = resp.apparent_encoding
+    if DEBUG:
+        dump(resp)
     if is_open(resp.text):
         send_telegram(f"🚨 철도교통안전관리자 접수 버튼 활성화!\n지금 확인하세요 👉 {URL}")
         print("열림 감지 → 텔레그램 전송")
